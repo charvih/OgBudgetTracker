@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { getCurrentMonth, formatCurrency, CATEGORY_EMOJI } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Category } from "@/lib/utils"
 
 type SummaryRow = {
@@ -113,8 +114,21 @@ export function ReportsPanel() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-48 text-stone-400 text-sm">
-          Loading…
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-stone-100">
+              <Skeleton className="h-5 w-56" />
+            </div>
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-5 space-y-4">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-60 w-full rounded-xl" />
+          </div>
         </div>
       ) : (
         <>
