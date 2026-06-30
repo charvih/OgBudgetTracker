@@ -131,6 +131,7 @@ src/
     auth.ts         ← NextAuth config
     validations.ts  ← Zod schemas
     utils.ts        ← CATEGORIES, emoji map, formatters, date helpers
+  middleware.ts     ← redirect unauthenticated users to /login
 prisma/schema.prisma
 .env.local          ← DATABASE_URL, NEXTAUTH_SECRET, ANTHROPIC_API_KEY
 .env.example        ← documented template (committed, no secrets)
