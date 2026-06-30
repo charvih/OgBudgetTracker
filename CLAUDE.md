@@ -98,6 +98,15 @@ Define once in `src/lib/utils.ts` and import everywhere — never hardcode inlin
 
 ---
 
+## Next.js 15 — Breaking Changes
+This is NOT the Next.js you know. APIs, conventions, and file structure may differ from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+
+Known breaking changes already encountered:
+- `params` and `searchParams` in pages and route handlers are now **Promises** — always `await params`
+- Middleware must live at `src/middleware.ts` — no other filename is recognised
+
+---
+
 ## Build Order
 1. Bootstrap (create-next-app + deps + shadcn + prisma init)
 2. Schema + migrate
