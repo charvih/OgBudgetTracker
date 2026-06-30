@@ -6,16 +6,26 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Wallet } from "lucide-react"
+import { CheckCircle, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { registerSchema, type RegisterInput } from "@/lib/validations"
 
 export default function RegisterPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [userName, setUserName] = useState("")
 
   const {
     register,
@@ -44,11 +54,36 @@ export default function RegisterPage() {
       password: data.password,
       redirect: false,
     })
-    router.push("/dashboard")
+
+    setUserName(data.name)
+    setShowSuccess(true)
   }
 
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+      <Dialog open={showSuccess} onOpenChange={() => {}}>
+        <DialogContent showCloseButton={false} className="max-w-sm text-center">
+          <DialogHeader>
+            <div className="flex justify-center mb-2">
+              <CheckCircle className="h-12 w-12 text-emerald-500" />
+            </div>
+            <DialogTitle className="text-lg text-center">Account created!</DialogTitle>
+            <DialogDescription className="text-center">
+              Welcome, <span className="font-medium text-stone-800">{userName}</span>! You&apos;re
+              signed in and ready to start tracking your expenses.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="border-0 bg-transparent sm:justify-center">
+            <Button
+              className="bg-rose-500 hover:bg-rose-600 w-full"
+              onClick={() => router.push("/dashboard")}
+            >
+              Get started
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-2">
           <div className="bg-rose-500 text-white p-3 rounded-2xl">

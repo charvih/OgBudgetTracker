@@ -15,7 +15,10 @@ export const loginSchema = z.object({
 export const expenseSchema = z.object({
   amount: z.coerce.number().positive("Amount must be greater than 0"),
   category: z.enum(CATEGORIES, { message: "Invalid category" }),
-  date: z.string().min(1, "Date is required"),
+  date: z.string().min(1, "Date is required").refine(
+    (val) => val <= new Date().toISOString().slice(0, 10),
+    "Date cannot be in the future"
+  ),
   description: z.string().max(200, "Description must be under 200 characters").optional().default(""),
 })
 

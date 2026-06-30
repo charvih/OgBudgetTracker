@@ -80,7 +80,7 @@ export function ExpenseForm({ defaultValues, onSubmit, submitLabel = "Save" }: E
 
       <div className="space-y-1.5">
         <Label htmlFor="date">Date</Label>
-        <Input id="date" type="date" {...register("date")} />
+        <Input id="date" type="date" max={format(new Date(), "yyyy-MM-dd")} {...register("date")} />
         {errors.date && <p className="text-xs text-rose-500">{errors.date.message}</p>}
       </div>
 
