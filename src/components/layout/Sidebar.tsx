@@ -2,10 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Receipt, PiggyBank, Sparkles, BarChart3, Wallet, LogOut } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { LayoutDashboard, Receipt, PiggyBank, Sparkles, BarChart3, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -45,16 +43,6 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-3 py-4 border-t border-stone-100">
-        <Button
-          variant="ghost"
-          className="w-full justify-start gap-3 text-stone-500 hover:text-rose-600 hover:bg-rose-50"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-        >
-          <LogOut className="h-4 w-4" />
-          Sign out
-        </Button>
-      </div>
     </aside>
   )
 }
