@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { expenseSchema } from "@/lib/validations"
+import { getMonthRange } from "@/lib/calculations"
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const { searchParams } = new URL(request.url)
@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
 
   let dateFilter = {}
   if (month && /^\d{4}-\d{2}$/.test(month)) {
-    const [year, m] = month.split("-").map(Number)
-    dateFilter = { date: { gte: new Date(year, m - 1, 1), lt: new Date(year, m, 1) } }
+    const { monthStart, monthEnd } = getMonthRange(month)
+    dateFilter = { date: { gte: monthStart, lt: monthEnd } }
   }
 
   const expenses = await db.expense.findMany({
@@ -23,20 +23,20 @@ export async function GET(request: NextRequest) {
     orderBy: { date: "desc" },
   })
 
-  return NextResponse.json(expenses)
+  return Response.json(expenses)
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const body = await request.json()
   const parsed = expenseSchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+    return Response.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
   }
 
   const { amount, category, date, description } = parsed.data
@@ -51,5 +51,5 @@ export async function POST(request: NextRequest) {
     },
   })
 
-  return NextResponse.json(expense, { status: 201 })
+  return Response.json(expense, { status: 201 })
 }

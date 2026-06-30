@@ -1,8 +1,8 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/session"
 import { UserMenu } from "./UserMenu"
 
 export async function Header() {
-  const session = await auth()
+  const session = await getSession()
   const name = session?.user?.name ?? ""
   const email = session?.user?.email ?? ""
 

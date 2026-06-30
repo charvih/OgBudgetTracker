@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { toast } from "sonner"
 import { CATEGORY_EMOJI, formatCurrency } from "@/lib/utils"
 import type { Category } from "@/lib/utils"
@@ -21,11 +21,9 @@ export function BudgetGrid({ data, month }: BudgetGridProps) {
     Object.fromEntries(data.map((d) => [d.category, d.limit != null ? String(d.limit) : ""]))
   )
   const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
-  async function handleBlur(category: Category) {
-    const raw = limits[category].trim()
-    if (!raw || Number(raw) <= 0) return
-
+  async function doSave(category: Category, raw: string) {
     setSaving((s) => ({ ...s, [category]: true }))
     try {
       const res = await fetch("/api/budgets", {
@@ -40,6 +38,14 @@ export function BudgetGrid({ data, month }: BudgetGridProps) {
     } finally {
       setSaving((s) => ({ ...s, [category]: false }))
     }
+  }
+
+  function handleBlur(category: Category) {
+    const raw = limits[category].trim()
+    if (!raw || Number(raw) <= 0) return
+
+    clearTimeout(saveTimers.current[category])
+    saveTimers.current[category] = setTimeout(() => void doSave(category, raw), 300)
   }
 
   return (

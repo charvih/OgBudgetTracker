@@ -1,9 +1,10 @@
 import { Suspense } from "react"
-import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
 import { db } from "@/lib/db"
 import { getCurrentMonth } from "@/lib/utils"
+import { getSession } from "@/lib/session"
+import { getMonthRange, groupByCategory } from "@/lib/calculations"
 import { SpendingOverview } from "@/components/dashboard/SpendingOverview"
 import { CategoryPieChart } from "@/components/dashboard/CategoryPieChart"
 import { BudgetProgressBar } from "@/components/dashboard/BudgetProgressBar"
@@ -18,16 +19,14 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ month?: string }>
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) redirect("/login")
 
   const { month: monthParam } = await searchParams
   const month = monthParam ?? getCurrentMonth()
+  const { monthStart, monthEnd } = getMonthRange(month)
 
   const userId = session.user.id
-  const [year, mon] = month.split("-").map(Number)
-  const monthStart = new Date(year, mon - 1, 1)
-  const monthEnd = new Date(year, mon, 1)
 
   const [expenses, budgets] = await Promise.all([
     db.expense.findMany({
@@ -37,10 +36,7 @@ export default async function DashboardPage({
     db.budget.findMany({ where: { userId, month } }),
   ])
 
-  const spentByCategory: Record<string, number> = {}
-  for (const e of expenses) {
-    spentByCategory[e.category] = (spentByCategory[e.category] ?? 0) + e.amount
-  }
+  const spentByCategory = groupByCategory(expenses)
 
   const totalSpent = expenses.reduce((s, e) => s + e.amount, 0)
   const totalBudgeted = budgets.reduce((s, b) => s + b.limit, 0)

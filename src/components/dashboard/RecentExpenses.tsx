@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { formatCurrency, formatDate, CATEGORY_EMOJI } from "@/lib/utils"
 import type { Category } from "@/lib/utils"
 
@@ -18,9 +19,9 @@ export function RecentExpenses({ expenses }: RecentExpensesProps) {
     <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-stone-800">Recent Expenses</h2>
-        <a href="/expenses" className="text-xs text-rose-500 hover:underline font-medium">
+        <Link href="/expenses" className="text-xs text-rose-500 hover:underline font-medium">
           View all →
-        </a>
+        </Link>
       </div>
 
       {expenses.length === 0 ? (

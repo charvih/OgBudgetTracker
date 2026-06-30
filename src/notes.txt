@@ -1,0 +1,256 @@
+Critical Issues (Broken Right Now)
+
+ 1. proxy.ts is dead code — middleware never
+ runs
+
+ File: src/proxy.ts
+
+ Next.js only recognises src/middleware.ts (or
+ root middleware.ts) as the middleware entry
+ point. A file named proxy.ts is silently
+ ignored. Consequences:
+ - The authorized() callback in auth.config.ts
+ never executes
+ - Unauthenticated users are NOT redirected to
+ /login at the edge
+ - Authenticated users are NOT redirected away
+ from /login or /register
+ - The app only appears protected because
+ individual pages call auth() — but see issue 2
+
+ Fix: Rename src/proxy.ts → src/middleware.ts.
+
+ 2. /expenses page has zero auth protection
+
+ File: src/app/(main)/expenses/page.tsx
+
+ Every other main page calls auth() +
+ redirect("/login"). The expenses page does
+ neither. An unauthenticated visitor gets the
+ page shell with an empty ExpenseList (the API
+ returns 401, producing a toast error). Once
+ middleware is fixed (issue 1), this becomes
+ moot — but right now it is the only completely
+ unprotected route.
+
+ ---
+ High Priority Issues
+
+ 3. ?force=true on insights is an open AI cost
+ vector
+
+ File: src/app/api/insights/route.ts
+
+ The force=true query param is user-controlled
+ and bypasses the 6-hour cooldown, always
+ triggering a Claude API call. Any
+ authenticated user can loop this endpoint and
+ run up Anthropic costs with no throttle. The
+ frontend sends it only on "Refresh", but
+ nothing stops direct API calls.
+
+ Fix: Remove the query param. Instead, store a
+ per-user lastForceRefreshAt with a minimum
+ 1-hour cooldown, or simply delete the cached
+ insight record on the client's behalf (forcing
+ the next normal POST to regenerate).
+
+ 4. AI response has no runtime validation —
+ crash risk
+
+ File: src/lib/ai.ts
+
+ const toolBlock = response.content[0] as
+ Anthropic.ToolUseBlock
+ return toolBlock.input as InsightContent
+
+ Both casts are unchecked. If Claude returns an
+ empty content array, an unexpected block
+ type, or a malformed tool input, this throws
+ or returns undefined which crashes the client.
+ The stored content in db.insight and its
+ re-cast on read share the same problem.
+
+ Fix: Add a z.object({ tips:
+ z.array(z.string()), ... }) Zod parse around
+ toolBlock.input in ai.ts.
+
+ ---
+ Medium Priority Issues
+
+ 5. Three different data-fetching paradigms
+ across five pages
+
+ ┌──────────┬──────────────┬──────────────┐
+ │   Page   │   Pattern    │    Month     │
+ │          │              │  Selection   │
+ ├──────────┼──────────────┼──────────────┤
+ │ Dashboar │ SSR (Prisma  │ URL ?month=  │
+ │ d        │ direct in    │ → server     │
+ │          │ page)        │ re-render    │
+ ├──────────┼──────────────┼──────────────┤
+ │          │ SSR (Prisma  │ URL ?month=  │
+ │ Budgets  │ direct in    │ → server     │
+ │          │ page)        │ re-render    │
+ ├──────────┼──────────────┼──────────────┤
+ │          │ SSR initial  │              │
+ │ Insights │ + client     │ N/A          │
+ │          │ POST for     │              │
+ │          │ mutation     │              │
+ ├──────────┼──────────────┼──────────────┤
+ │          │ Client-islan │              │
+ │ Expenses │ d (useEffect │ useState in  │
+ │          │  + fetch     │ component    │
+ │          │ /api)        │              │
+ ├──────────┼──────────────┼──────────────┤
+ │          │ Client-islan │ useState     │
+ │ Reports  │ d (useEffect │ with raw     │
+ │          │  + fetch     │ <input type= │
+ │          │ /api)        │ "month">     │
+ └──────────┴──────────────┴──────────────┘
+
+ The Expenses and Reports pages bypass RSC
+ entirely — the page is a shell, and the client
+ component owns the full data lifecycle. This
+ means those routes get no SSR benefit, the
+ selected month is not in the URL (not
+ bookmarkable, lost on navigation), and the
+ month selection UI is inconsistent (Select
+ dropdown vs. native month input vs.
+ MonthPicker).
+
+ Fix: Convert Expenses and Reports to the same
+ URL-param + SSR pattern as Dashboard and
+ Budgets, using MonthPicker for consistency.
+
+ 6. Duplicated logic across files — no shared
+ helpers
+
+ Three blocks of logic are copy-pasted across
+ multiple files with no abstraction:
+
+ a) Month → date range (in dashboard/page.tsx,
+ budgets/page.tsx, api/expenses/route.ts,
+ api/reports/route.ts):
+ const [year, mon] =
+ month.split("-").map(Number)
+ const monthStart = new Date(year, mon - 1, 1)
+ const monthEnd = new Date(year, mon, 1)
+
+ b) spentByCategory aggregation loop (in
+ dashboard/page.tsx, budgets/page.tsx,
+ api/reports/route.ts):
+ for (const e of expenses) {
+   spentByCategory[e.category] =
+ (spentByCategory[e.category] ?? 0) + e.amount
+ }
+
+ c) monthOptions array (identical code in
+ MonthPicker.tsx and ExpenseList.tsx)
+
+ Fix: Extract to src/lib/calculations.ts —
+ getMonthRange(month),
+ groupByCategory(expenses), getMonthOptions().
+
+ 7. No shared typed API client
+
+ Client components call fetch() directly, cast
+ responses with no compile-time or runtime
+ guarantee. ExpenseList defines its own local
+ Expense type; the API's response shape is
+ untyped from the client's perspective. If an
+ API response shape changes, TypeScript won't
+ catch it.
+
+ Fix: src/lib/api.ts with typed wrappers —
+ fetchExpenses(month), createExpense(data),
+ etc. — returning the same types the API routes
+ produce.
+
+ 8. auth() is called twice per page render
+
+ Header independently calls auth() to get
+ name/email. The page that contains Header (via
+ the shared layout) also calls auth(). Two JWT
+ decodes per request. Not expensive, but
+ redundant and suggests the layout isn't aware
+ of the page-level session.
+
+ Fix: Pass the session from the page down to
+ Header via layout props, or extract a
+ cache()-wrapped getSession() helper so both
+ calls hit the same cached result within a
+ single request.
+
+ ---
+ 9) Low Priority / Minor Inconsistencies
+
+ Issue: <a href="/expenses"> causes full page
+   reload
+ File: RecentExpenses.tsx
+ Fix: Use <Link>
+ ────────────────────────────────────────
+ Issue: BudgetGrid fires 9 sequential API calls
+
+   if user tabs through all inputs
+ File: BudgetGrid.tsx
+ Fix: Debounce or add explicit Save button
+ ────────────────────────────────────────
+ Issue: ReportsPanel uses raw <table>
+ File: ReportsPanel.tsx
+ Fix: Use shadcn <Table> (consistent with
+   ExpenseList)
+ ────────────────────────────────────────
+ Issue: InsightsPanel button is raw <button>
+   with inline Tailwind
+ File: InsightsPanel.tsx
+ Fix: Use shadcn <Button>
+ ────────────────────────────────────────
+ Issue: No pagination on expense list
+ File: api/expenses/route.ts
+ Fix: Add take/skip for large months
+ ────────────────────────────────────────
+ Issue: auth() missing on expenses/page.tsx
+ File: expenses/page.tsx
+ Fix: Add guard (moot once middleware is fixed)
+ ────────────────────────────────────────
+ Issue: src/generated/prisma/ committed to git
+ File: .gitignore
+ Fix: Gitignore it, regenerate at build time
+ ────────────────────────────────────────
+ Issue: api/expenses uses
+   NextRequest/NextResponse; api/budgets uses
+   Request/Response
+ File: API routes
+ Fix: Pick one convention
+
+ ---
+ untyped from the client's perspective. If an
+ API response shape changes, TypeScript won't
+ catch it.
+
+ Fix: src/lib/api.ts with typed wrappers —
+ fetchExpenses(month), createExpense(data),
+ etc. — returning the same types the API routes
+ produce.
+
+ Summary Verdict
+
+ The architecture is reasonable for a practice
+ project and follows Next.js App Router
+ patterns correctly in places. The RSC usage on
+ Dashboard and Budgets is genuinely idiomatic.
+ The shared validation schema pattern is
+ correct.
+
+ The two blockers that matter most in practice:
+ 1. Middleware is silently broken — the app's
+ auth protection relies entirely on per-page
+ guards, not the edge middleware it thinks it
+ has.
+ 2. The ?force=true AI bypass — a real cost
+ risk if this were ever deployed with real API
+ keys.
+
+ Everything else is code quality and
+ consistency, not correctness.

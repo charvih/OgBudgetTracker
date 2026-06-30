@@ -1,13 +1,16 @@
 import Anthropic from "@anthropic-ai/sdk"
+import { z } from "zod"
 
 const client = new Anthropic()
 
-export type InsightContent = {
-  tips: string[]
-  overspend: string[]
-  forgotten_subscriptions: string[]
-  fraud_flags: string[]
-}
+const insightSchema = z.object({
+  tips: z.array(z.string()),
+  overspend: z.array(z.string()),
+  forgotten_subscriptions: z.array(z.string()),
+  fraud_flags: z.array(z.string()),
+})
+
+export type InsightContent = z.infer<typeof insightSchema>
 
 type ExpenseData = {
   amount: number
@@ -87,6 +90,10 @@ Provide specific, actionable insights. If there are no expenses, provide general
     ],
   })
 
-  const toolBlock = response.content[0] as Anthropic.ToolUseBlock
-  return toolBlock.input as InsightContent
+  const toolBlock = response.content.find(
+    (b): b is Anthropic.ToolUseBlock => b.type === "tool_use",
+  )
+  if (!toolBlock) throw new Error("Claude did not return a tool_use block")
+
+  return insightSchema.parse(toolBlock.input)
 }

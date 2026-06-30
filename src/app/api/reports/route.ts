@@ -1,9 +1,9 @@
-import { NextRequest } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { CATEGORIES } from "@/lib/utils"
+import { getMonthRange, groupByCategory } from "@/lib/calculations"
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const session = await auth()
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
@@ -15,9 +15,8 @@ export async function GET(request: NextRequest) {
   }
 
   const userId = session.user.id
+  const { monthStart, monthEnd } = getMonthRange(month)
   const [year, mon] = month.split("-").map(Number)
-  const monthStart = new Date(year, mon - 1, 1)
-  const monthEnd = new Date(year, mon, 1)
 
   const [expenses, budgets] = await Promise.all([
     db.expense.findMany({
@@ -30,10 +29,7 @@ export async function GET(request: NextRequest) {
     }),
   ])
 
-  const spentByCategory: Record<string, number> = {}
-  for (const e of expenses) {
-    spentByCategory[e.category] = (spentByCategory[e.category] ?? 0) + e.amount
-  }
+  const spentByCategory = groupByCategory(expenses)
   const budgetByCategory: Record<string, number | null> = {}
   for (const b of budgets) {
     budgetByCategory[b.category] = b.limit
@@ -46,7 +42,6 @@ export async function GET(request: NextRequest) {
     return { category: cat, spent, budget, variance }
   })
 
-  // Fetch all expenses in the 6-month window ending at monthEnd
   const sixMonthsAgo = new Date(year, mon - 6, 1)
   const trendExpenses = await db.expense.findMany({
     where: { userId, date: { gte: sixMonthsAgo, lt: monthEnd } },

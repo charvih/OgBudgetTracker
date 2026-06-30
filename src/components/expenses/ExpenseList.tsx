@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useCallback } from "react"
 import { format } from "date-fns"
 import { Pencil, Trash2, Plus } from "lucide-react"
 import { toast } from "sonner"
@@ -31,33 +31,29 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ExpenseForm } from "./ExpenseForm"
-import { CATEGORIES, CATEGORY_EMOJI, formatCurrency, formatDate, getCurrentMonth } from "@/lib/utils"
+import { CATEGORIES, CATEGORY_EMOJI, formatCurrency, formatDate } from "@/lib/utils"
+import { fetchExpenses, createExpense, updateExpense, deleteExpense } from "@/lib/api"
+import type { Expense } from "@/lib/api"
 import type { ExpenseInput } from "@/lib/validations"
 
-type Expense = {
-  id: string
-  amount: number
-  category: string
-  date: string
-  description: string
+interface ExpenseListProps {
+  initialExpenses: Expense[]
+  month: string
 }
 
-export function ExpenseList() {
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [loading, setLoading] = useState(true)
-  const [month, setMonth] = useState(getCurrentMonth())
+export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+  const [loading, setLoading] = useState(false)
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Expense | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  const fetchExpenses = useCallback(async () => {
+  const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/expenses?month=${month}`)
-      if (!res.ok) throw new Error("Failed to load")
-      setExpenses(await res.json())
+      setExpenses(await fetchExpenses(month))
     } catch {
       toast.error("Could not load expenses")
     } finally {
@@ -65,53 +61,40 @@ export function ExpenseList() {
     }
   }, [month])
 
-  useEffect(() => {
-    fetchExpenses()
-  }, [fetchExpenses])
-
   const filtered =
     categoryFilter === "all" ? expenses : expenses.filter((e) => e.category === categoryFilter)
 
   async function handleAdd(data: ExpenseInput) {
-    const res = await fetch("/api/expenses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
+    try {
+      await createExpense(data)
+      toast.success("Expense added")
+      setAddOpen(false)
+      refresh()
+    } catch {
       toast.error("Failed to add expense")
-      return
     }
-    toast.success("Expense added")
-    setAddOpen(false)
-    fetchExpenses()
   }
 
   async function handleEdit(data: ExpenseInput) {
     if (!editTarget) return
-    const res = await fetch(`/api/expenses/${editTarget.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    })
-    if (!res.ok) {
+    try {
+      await updateExpense(editTarget.id, data)
+      toast.success("Expense updated")
+      setEditTarget(null)
+      refresh()
+    } catch {
       toast.error("Failed to update expense")
-      return
     }
-    toast.success("Expense updated")
-    setEditTarget(null)
-    fetchExpenses()
   }
 
   async function handleDelete() {
     if (!deleteTarget) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/expenses/${deleteTarget.id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error()
+      await deleteExpense(deleteTarget.id)
       toast.success("Expense deleted")
       setDeleteTarget(null)
-      fetchExpenses()
+      refresh()
     } catch {
       toast.error("Failed to delete expense")
     } finally {
@@ -119,44 +102,22 @@ export function ExpenseList() {
     }
   }
 
-  const monthOptions = Array.from({ length: 12 }, (_, i) => {
-    const d = new Date()
-    d.setDate(1)
-    d.setMonth(d.getMonth() - i)
-    return { val: format(d, "yyyy-MM"), label: format(d, "MMMM yyyy") }
-  })
-
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 justify-between">
-        <div className="flex gap-2">
-          <Select value={month} onValueChange={(val) => val && setMonth(val)}>
-            <SelectTrigger className="w-44">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {monthOptions.map(({ val, label }) => (
-                <SelectItem key={val} value={val}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={categoryFilter} onValueChange={(val) => val && setCategoryFilter(val)}>
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder="All categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {CATEGORY_EMOJI[cat]} {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={categoryFilter} onValueChange={(val) => val && setCategoryFilter(val)}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {CATEGORIES.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {CATEGORY_EMOJI[cat]} {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Button onClick={() => setAddOpen(true)} className="bg-rose-500 hover:bg-rose-600 text-white">
           <Plus className="h-4 w-4 mr-1.5" />
