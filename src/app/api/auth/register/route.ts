@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import { db } from "@/lib/db"
+import { registerSchema } from "@/lib/validations"
+
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  const parsed = registerSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.flatten().fieldErrors }, { status: 400 })
+  }
+
+  const { name, email, password } = parsed.data
+
+  const existing = await db.user.findUnique({ where: { email } })
+  if (existing) {
+    return NextResponse.json({ error: { email: ["Email already in use"] } }, { status: 409 })
+  }
+
+  const hashed = await bcrypt.hash(password, 12)
+  await db.user.create({ data: { name, email, password: hashed } })
+
+  return NextResponse.json({ success: true }, { status: 201 })
+}
