@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
@@ -5,15 +6,22 @@ import { db } from "@/lib/db"
 import { CATEGORIES, getCurrentMonth } from "@/lib/utils"
 import type { Category } from "@/lib/utils"
 import { BudgetGrid } from "@/components/budgets/BudgetGrid"
+import { MonthPicker } from "@/components/layout/MonthPicker"
 
 export const metadata = { title: "Budgets — Budget Tracker" }
 
-export default async function BudgetsPage() {
+export default async function BudgetsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
+  const { month: monthParam } = await searchParams
+  const month = monthParam ?? getCurrentMonth()
+
   const userId = session.user.id
-  const month = getCurrentMonth()
   const [year, mon] = month.split("-").map(Number)
   const monthStart = new Date(year, mon - 1, 1)
   const monthEnd = new Date(year, mon, 1)
@@ -41,13 +49,18 @@ export default async function BudgetsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-stone-800">Budgets</h1>
-        <p className="text-stone-500 text-sm mt-1">
-          Set monthly limits for {format(monthStart, "MMMM yyyy")}
-        </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-stone-800">Budgets</h1>
+          <p className="text-stone-500 text-sm mt-1">
+            Set monthly limits for {format(monthStart, "MMMM yyyy")}
+          </p>
+        </div>
+        <Suspense>
+          <MonthPicker />
+        </Suspense>
       </div>
-      <BudgetGrid data={data} month={month} />
+      <BudgetGrid key={month} data={data} month={month} />
     </div>
   )
 }

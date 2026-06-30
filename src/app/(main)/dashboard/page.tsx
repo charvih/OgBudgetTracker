@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { format } from "date-fns"
@@ -8,15 +9,22 @@ import { CategoryPieChart } from "@/components/dashboard/CategoryPieChart"
 import { BudgetProgressBar } from "@/components/dashboard/BudgetProgressBar"
 import { RecentExpenses } from "@/components/dashboard/RecentExpenses"
 import { QuickAddButton } from "@/components/dashboard/QuickAddButton"
+import { MonthPicker } from "@/components/layout/MonthPicker"
 
 export const metadata = { title: "Dashboard — Budget Tracker" }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.id) redirect("/login")
 
+  const { month: monthParam } = await searchParams
+  const month = monthParam ?? getCurrentMonth()
+
   const userId = session.user.id
-  const month = getCurrentMonth()
   const [year, mon] = month.split("-").map(Number)
   const monthStart = new Date(year, mon - 1, 1)
   const monthEnd = new Date(year, mon, 1)
@@ -58,14 +66,19 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-stone-800">Dashboard</h1>
           <p className="text-stone-500 text-sm mt-1">
             {format(monthStart, "MMMM yyyy")} overview
           </p>
         </div>
-        <QuickAddButton />
+        <div className="flex items-center gap-2">
+          <Suspense>
+            <MonthPicker />
+          </Suspense>
+          <QuickAddButton />
+        </div>
       </div>
 
       <SpendingOverview totalSpent={totalSpent} totalBudgeted={totalBudgeted} />

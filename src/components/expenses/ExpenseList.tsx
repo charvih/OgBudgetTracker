@@ -223,16 +223,18 @@ export function ExpenseList() {
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="text-stone-400 hover:text-violet-600"
+                        className="text-stone-500 hover:text-violet-600 hover:bg-violet-50"
                         onClick={() => setEditTarget(expense)}
+                        title="Edit expense"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon-sm"
-                        className="text-stone-400 hover:text-rose-600"
+                        className="text-stone-500 hover:text-rose-600 hover:bg-rose-50"
                         onClick={() => setDeleteTarget(expense)}
+                        title="Delete expense"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
