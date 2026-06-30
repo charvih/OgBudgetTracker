@@ -48,7 +48,7 @@ src/
     auth.ts        — NextAuth config
     validations.ts — Zod schemas
     utils.ts       — CATEGORIES list, formatters, date helpers
-  middleware.ts     — redirect unauthenticated users to /login
+  proxy.ts          — redirect unauthenticated users to /login (Next.js 16 replaced middleware.ts with proxy.ts — do NOT use middleware.ts)
 prisma/schema.prisma
 .env.local         — DATABASE_URL, NEXTAUTH_SECRET, ANTHROPIC_API_KEY
 ```
@@ -98,12 +98,12 @@ Define once in `src/lib/utils.ts` and import everywhere — never hardcode inlin
 
 ---
 
-## Next.js 15 — Breaking Changes
-This is NOT the Next.js you know. APIs, conventions, and file structure may differ from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+## Next.js 16 — Breaking Changes
+Installed version is **16.2.9**, not 15. APIs, conventions, and file structure may differ from training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 Known breaking changes already encountered:
 - `params` and `searchParams` in pages and route handlers are now **Promises** — always `await params`
-- Middleware must live at `src/middleware.ts` — no other filename is recognised
+- Auth proxy lives at `src/proxy.ts` — Next.js 16 renamed middleware.ts to proxy.ts. The runtime entry point hard-imports proxy.ts. Do NOT create middleware.ts; having both files causes a fatal error.
 
 ---
 
