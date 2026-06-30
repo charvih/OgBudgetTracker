@@ -15,14 +15,15 @@ export async function GET() {
   return Response.json({ content: insight.content, generatedAt: insight.generatedAt })
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 })
 
   const userId = session.user.id
+  const force = new URL(request.url).searchParams.get("force") === "true"
   const existing = await db.insight.findUnique({ where: { userId } })
 
-  if (existing && Date.now() - existing.generatedAt.getTime() < SIX_HOURS) {
+  if (!force && existing && Date.now() - existing.generatedAt.getTime() < SIX_HOURS) {
     return Response.json({ content: existing.content, generatedAt: existing.generatedAt })
   }
 

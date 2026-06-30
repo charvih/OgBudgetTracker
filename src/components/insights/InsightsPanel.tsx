@@ -55,10 +55,11 @@ export function InsightsPanel({ initialContent, initialGeneratedAt }: InsightsPa
   const [generatedAt, setGeneratedAt] = useState<string | null>(initialGeneratedAt)
   const [loading, setLoading] = useState(false)
 
-  async function generate() {
+  async function generate(force = false) {
     setLoading(true)
     try {
-      const res = await fetch("/api/insights", { method: "POST" })
+      const url = force ? "/api/insights?force=true" : "/api/insights"
+      const res = await fetch(url, { method: "POST" })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setContent(data.content)
@@ -82,7 +83,7 @@ export function InsightsPanel({ initialContent, initialGeneratedAt }: InsightsPa
           )}
         </div>
         <button
-          onClick={generate}
+          onClick={() => generate(!!content)}
           disabled={loading}
           className="inline-flex items-center gap-2 rounded-xl bg-rose-500 px-4 py-2 text-sm font-medium text-white hover:bg-rose-600 disabled:opacity-60 transition-colors"
         >
