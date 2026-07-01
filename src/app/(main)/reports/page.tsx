@@ -19,7 +19,8 @@ export default async function ReportsPage({
   if (!session?.user?.id) redirect("/login")
 
   const { month: monthParam } = await searchParams
-  const month = monthParam ?? getCurrentMonth()
+  const month =
+    monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? monthParam : getCurrentMonth()
   const { monthStart, monthEnd } = getMonthRange(month)
 
   const userId = session.user.id
