@@ -1,5 +1,9 @@
+// This file shows a placeholder skeleton animation while the budgets page data is loading.
+// It mimics the grid of budget cards so the layout does not jump when the real content appears.
+
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Renders animated grey blocks matching the shape of the budget cards grid.
 export default function BudgetsLoading() {
   return (
     <div className="space-y-6">
@@ -8,6 +12,7 @@ export default function BudgetsLoading() {
         <Skeleton className="h-4 w-52" />
       </div>
 
+      {/* Placeholder cards for each spending category arranged in a grid. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="rounded-2xl border border-stone-200 bg-white shadow-sm p-5 space-y-4">

@@ -1,3 +1,7 @@
+// This component shows the five most recent expenses on the dashboard in a simple list.
+// Each row displays the category emoji, description, date, and amount, with a link at
+// the top to go to the full expenses page for the selected month.
+
 import Link from "next/link"
 import { formatCurrency, formatDate, CATEGORY_EMOJI } from "@/lib/utils"
 import type { Category } from "@/lib/utils"
@@ -15,16 +19,19 @@ interface RecentExpensesProps {
   month: string
 }
 
+// Renders a card with a short list of recent expenses and a link to view all of them.
 export function RecentExpenses({ expenses, month }: RecentExpensesProps) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-stone-800">Recent Expenses</h2>
+        {/* Link that takes the user to the full expenses list filtered to the same month. */}
         <Link href={`/expenses?month=${month}`} className="text-xs text-rose-500 hover:underline font-medium">
           View all →
         </Link>
       </div>
 
+      {/* Shows an empty state message if there are no expenses for this month. */}
       {expenses.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-40 text-center space-y-2">
           <p className="text-3xl">📭</p>
@@ -33,6 +40,7 @@ export function RecentExpenses({ expenses, month }: RecentExpensesProps) {
         </div>
       ) : (
         <div className="space-y-3">
+          {/* Loops through each expense and renders an icon, description, date, and amount. */}
           {expenses.map((expense) => (
             <div key={expense.id} className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
@@ -40,6 +48,7 @@ export function RecentExpenses({ expenses, month }: RecentExpensesProps) {
                   {CATEGORY_EMOJI[expense.category as Category] ?? "📦"}
                 </span>
                 <div className="min-w-0">
+                  {/* Shows the description if there is one, otherwise falls back to the category name. */}
                   <p className="text-sm font-medium text-stone-700 truncate">
                     {expense.description || expense.category}
                   </p>

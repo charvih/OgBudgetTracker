@@ -1,3 +1,7 @@
+// This file defines the Select dropdown component and all its parts.
+// It is used throughout the app for picking a category, filtering by category, and choosing a month.
+// The component is built on top of the Base UI library for accessible keyboard and screen reader support.
+
 "use client"
 
 import * as React from "react"
@@ -6,8 +10,10 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
+// The root select component that wraps everything else and manages the open/closed state.
 const Select = SelectPrimitive.Root
 
+// Groups related options together inside a dropdown with optional padding.
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
     <SelectPrimitive.Group
@@ -18,6 +24,7 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
+// Renders the text of the currently selected option inside the trigger button.
 function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
@@ -28,6 +35,7 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   )
 }
 
+// Renders the clickable button that opens and closes the dropdown list.
 function SelectTrigger({
   className,
   size = "default",
@@ -47,6 +55,7 @@ function SelectTrigger({
       {...props}
     >
       {children}
+      {/* The chevron icon that shows the dropdown is expandable. */}
       <SelectPrimitive.Icon
         render={
           <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
@@ -56,6 +65,7 @@ function SelectTrigger({
   )
 }
 
+// Renders the floating dropdown panel containing the list of options.
 function SelectContent({
   className,
   children,
@@ -72,6 +82,7 @@ function SelectContent({
   >) {
   return (
     <SelectPrimitive.Portal>
+      {/* Positions the dropdown panel relative to the trigger button. */}
       <SelectPrimitive.Positioner
         side={side}
         sideOffset={sideOffset}
@@ -95,6 +106,7 @@ function SelectContent({
   )
 }
 
+// Renders a small group label above a set of related options inside a SelectGroup.
 function SelectLabel({
   className,
   ...props
@@ -108,6 +120,7 @@ function SelectLabel({
   )
 }
 
+// Renders a single selectable option inside the dropdown list.
 function SelectItem({
   className,
   children,
@@ -125,6 +138,7 @@ function SelectItem({
       <SelectPrimitive.ItemText className="flex flex-1 shrink-0 gap-2 whitespace-nowrap">
         {children}
       </SelectPrimitive.ItemText>
+      {/* Shows a tick mark next to the currently selected option. */}
       <SelectPrimitive.ItemIndicator
         render={
           <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center" />
@@ -136,6 +150,7 @@ function SelectItem({
   )
 }
 
+// Renders a horizontal dividing line between groups of options in the dropdown.
 function SelectSeparator({
   className,
   ...props
@@ -149,6 +164,7 @@ function SelectSeparator({
   )
 }
 
+// Renders an arrow button at the top of the dropdown that scrolls the list up.
 function SelectScrollUpButton({
   className,
   ...props
@@ -168,6 +184,7 @@ function SelectScrollUpButton({
   )
 }
 
+// Renders an arrow button at the bottom of the dropdown that scrolls the list down.
 function SelectScrollDownButton({
   className,
   ...props

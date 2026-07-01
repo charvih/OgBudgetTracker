@@ -1,3 +1,7 @@
+// This is the registration page where new users create an account with their name, email, and password.
+// After a successful sign-up the user is automatically logged in and shown a welcome popup
+// before being taken to the dashboard.
+
 "use client"
 
 import { useState } from "react"
@@ -23,25 +27,32 @@ import { registerSchema, type RegisterInput } from "@/lib/validations"
 
 export default function RegisterPage() {
   const router = useRouter()
+  // Stores an error message to show if registration fails.
   const [error, setError] = useState<string | null>(null)
+  // Controls whether the success popup is visible after account creation.
   const [showSuccess, setShowSuccess] = useState(false)
+  // Stores the new user's name to personalise the welcome message.
   const [userName, setUserName] = useState("")
 
+  // Sets up the registration form with the schema validation rules.
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({ resolver: zodResolver(registerSchema) })
 
+  // Sends the registration data to the API and then logs the user in automatically.
   const onSubmit = async (data: RegisterInput) => {
     setError(null)
 
+    // Posts the new account details to the registration API endpoint.
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     })
 
+    // If the API returned an error, extract the first error message and display it.
     if (!res.ok) {
       const body = await res.json()
       const firstError = Object.values(body.error ?? {})[0] as string[] | undefined
@@ -49,18 +60,21 @@ export default function RegisterPage() {
       return
     }
 
+    // Logs the new user in right away so they do not need to go to the login page.
     await signIn("credentials", {
       email: data.email,
       password: data.password,
       redirect: false,
     })
 
+    // Shows the welcome popup with the user's name.
     setUserName(data.name)
     setShowSuccess(true)
   }
 
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center p-4">
+      {/* The success dialog shown after the account is created successfully. */}
       <Dialog open={showSuccess} onOpenChange={() => {}}>
         <DialogContent showCloseButton={false} className="max-w-sm text-center">
           <DialogHeader>
@@ -74,6 +88,7 @@ export default function RegisterPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="border-0 bg-transparent sm:justify-center">
+            {/* Clicking this button takes the newly registered user to the dashboard. */}
             <Button
               className="bg-rose-500 hover:bg-rose-600 w-full"
               onClick={() => router.push("/dashboard")}
@@ -85,6 +100,7 @@ export default function RegisterPage() {
       </Dialog>
 
       <div className="w-full max-w-md space-y-6">
+        {/* The app logo and name shown above the registration card. */}
         <div className="flex flex-col items-center gap-2">
           <div className="bg-rose-500 text-white p-3 rounded-2xl">
             <Wallet className="h-7 w-7" />
@@ -99,6 +115,7 @@ export default function RegisterPage() {
             <CardDescription>Start tracking your expenses today</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* The registration form with name, email, and password fields. */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="name">Name</Label>
@@ -134,6 +151,7 @@ export default function RegisterPage() {
                 )}
               </div>
 
+              {/* Shows the server-side error such as "email already in use". */}
               {error && (
                 <p className="text-sm text-rose-500 bg-rose-50 px-3 py-2 rounded-lg">{error}</p>
               )}
@@ -147,6 +165,7 @@ export default function RegisterPage() {
               </Button>
             </form>
 
+            {/* Link to the login page for users who already have an account. */}
             <p className="text-center text-sm text-stone-500 mt-4">
               Already have an account?{" "}
               <Link href="/login" className="text-rose-500 hover:underline font-medium">

@@ -1,3 +1,7 @@
+// This component renders the "Add Expense" button on the dashboard.
+// Clicking it opens a popup form where the user can quickly log a new expense
+// without navigating away from the dashboard.
+
 "use client"
 
 import { useState } from "react"
@@ -15,10 +19,13 @@ import {
 import { ExpenseForm } from "@/components/expenses/ExpenseForm"
 import type { ExpenseInput } from "@/lib/validations"
 
+// Renders the button and the popup form for adding a new expense from the dashboard.
 export function QuickAddButton() {
+  // Controls whether the add expense popup is open or closed.
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
+  // Sends the new expense to the API and refreshes the page to show the updated data.
   async function handleAdd(data: ExpenseInput) {
     const res = await fetch("/api/expenses", {
       method: "POST",
@@ -31,11 +38,13 @@ export function QuickAddButton() {
     }
     toast.success("Expense added")
     setOpen(false)
+    // Refreshes the current page data without a full browser reload.
     router.refresh()
   }
 
   return (
     <>
+      {/* The rose-coloured button that opens the add expense dialog. */}
       <Button
         onClick={() => setOpen(true)}
         className="bg-rose-500 hover:bg-rose-600 text-white"
@@ -44,6 +53,7 @@ export function QuickAddButton() {
         Add Expense
       </Button>
 
+      {/* The popup dialog containing the expense form. */}
       <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
         <DialogContent>
           <DialogHeader>

@@ -1,3 +1,7 @@
+// This component renders the reports page content with a category summary table and a bar chart.
+// The table shows how much was spent versus the budget in each category, and the chart shows
+// the total spending trend over the last six months. The user can also download the data as a CSV.
+
 "use client"
 
 import { format, parseISO } from "date-fns"
@@ -42,7 +46,9 @@ type ReportData = {
   trend: { month: string; total: number }[]
 }
 
+// Converts the summary table into a CSV file and triggers a download in the browser.
 function exportCSV(rows: SummaryRow[], month: string) {
+  // Builds an array of rows starting with the header row.
   const lines = [
     ["Category", "Spent (AUD)", "Budget (AUD)", "Variance (AUD)"],
     ...rows.map((r) => [
@@ -52,7 +58,9 @@ function exportCSV(rows: SummaryRow[], month: string) {
       r.variance !== null ? r.variance.toFixed(2) : "",
     ]),
   ]
+  // Joins all values with commas and wraps each in quotes to handle special characters.
   const csv = lines.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n")
+  // Creates a temporary download link and clicks it to save the file.
   const blob = new Blob([csv], { type: "text/csv" })
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
@@ -62,6 +70,7 @@ function exportCSV(rows: SummaryRow[], month: string) {
   URL.revokeObjectURL(url)
 }
 
+// Formats Y-axis tick values on the bar chart — shows "k" for thousands and "$" prefix.
 function yAxisFormatter(v: number): string {
   if (v === 0) return "$0"
   if (v >= 1000) return `$${(v / 1000).toFixed(1)}k`
@@ -73,15 +82,20 @@ interface ReportsPanelProps {
   month: string
 }
 
+// Renders the export button, category summary table, and six-month trend bar chart.
 export function ReportsPanel({ data, month }: ReportsPanelProps) {
+  // Filters out categories with no spending and no budget set, so the table stays clean.
   const visibleRows = data.summary.filter((r) => r.spent > 0 || r.budget !== null)
 
+  // Converts the trend data into chart-ready format with a short month label like "Jun".
   const trendData: TrendPoint[] = data.trend.map((t) => ({
     ...t,
     label: format(parseISO(t.month + "-01"), "MMM"),
   }))
 
+  // Checks if any category has a budget so the budget and variance columns are shown.
   const hasAnyBudget = visibleRows.some((r) => r.budget !== null)
+  // Calculates the totals row at the bottom of the table.
   const totalSpent = visibleRows.reduce((s, r) => s + r.spent, 0)
   const totalBudget = visibleRows
     .filter((r) => r.budget !== null)
@@ -92,7 +106,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
 
   return (
     <div className="space-y-6">
-      {/* Export */}
+      {/* The export button that downloads the table as a CSV file. */}
       <div className="flex justify-end">
         <Button
           variant="outline"
@@ -104,7 +118,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
         </Button>
       </div>
 
-      {/* Summary table */}
+      {/* The category summary table showing spent, budget, and variance for the selected month. */}
       <div className="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-stone-100">
           <h2 className="font-semibold text-stone-800">
@@ -112,6 +126,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
           </h2>
         </div>
 
+        {/* Shows an empty state if there are no expenses or budgets for this month. */}
         {visibleRows.length === 0 ? (
           <p className="px-5 py-10 text-center text-stone-400 text-sm">
             No expenses or budgets recorded for this month.
@@ -127,6 +142,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Renders one row per visible category with emoji, amounts, and colour-coded variance. */}
               {visibleRows.map((row) => (
                 <TableRow key={row.category}>
                   <TableCell className="text-stone-800">
@@ -141,6 +157,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
                   <TableCell className="text-right text-stone-500 tabular-nums">
                     {row.budget !== null ? formatCurrency(row.budget) : "—"}
                   </TableCell>
+                  {/* Shows variance in green if under budget or red if over budget. */}
                   <TableCell
                     className={`text-right font-medium tabular-nums ${
                       row.variance === null
@@ -157,6 +174,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
                 </TableRow>
               ))}
             </TableBody>
+            {/* The totals footer row summing up all visible categories. */}
             <TableFooter>
               <TableRow className="font-semibold">
                 <TableCell>Total</TableCell>
@@ -185,9 +203,10 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
         )}
       </div>
 
-      {/* 6-month trend chart */}
+      {/* The six-month spending trend bar chart. */}
       <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-5">
         <h2 className="font-semibold text-stone-800 mb-4">6-Month Spending Trend</h2>
+        {/* Shows an empty state if there is no spending data for any of the six months. */}
         {trendData.every((t) => t.total === 0) ? (
           <div className="flex flex-col items-center justify-center h-48 text-center space-y-2">
             <p className="text-3xl">📈</p>
@@ -211,6 +230,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
                 tickFormatter={yAxisFormatter}
                 width={44}
               />
+              {/* Tooltip that shows the exact dollar amount when hovering over a bar. */}
               <Tooltip
                 formatter={(value) =>
                   typeof value === "number"
@@ -224,6 +244,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
                 }}
                 cursor={{ fill: "#f5f5f4" }}
               />
+              {/* The rose-coloured bars representing total spending for each month. */}
               <Bar dataKey="total" fill="#f43f5e" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

@@ -1,3 +1,7 @@
+// This component renders the full interactive expense table on the Expenses page.
+// It lets the user filter by category, add new expenses, edit existing ones, and delete them,
+// all without leaving the page — changes are applied via the API and the list refreshes automatically.
+
 "use client"
 
 import { useState, useCallback } from "react"
@@ -41,15 +45,24 @@ interface ExpenseListProps {
   month: string
 }
 
+// Renders the expense table with category filter, add/edit/delete dialogs, and loading skeletons.
 export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
+  // Holds the current list of expenses shown in the table.
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+  // Tracks whether the table is refreshing data from the server.
   const [loading, setLoading] = useState(false)
+  // Stores the currently selected category filter value.
   const [categoryFilter, setCategoryFilter] = useState("all")
+  // Controls whether the add expense dialog is open.
   const [addOpen, setAddOpen] = useState(false)
+  // Stores the expense being edited, or null if no edit dialog is open.
   const [editTarget, setEditTarget] = useState<Expense | null>(null)
+  // Stores the expense pending deletion, or null if no delete dialog is open.
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
+  // Tracks whether the delete request is currently in progress.
   const [deleting, setDeleting] = useState(false)
 
+  // Re-fetches the expense list from the server and updates the table.
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
@@ -61,9 +74,11 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
     }
   }, [month])
 
+  // Filters the list to only show expenses in the selected category, or all if "all" is chosen.
   const filtered =
     categoryFilter === "all" ? expenses : expenses.filter((e) => e.category === categoryFilter)
 
+  // Sends the new expense to the API and refreshes the table on success.
   async function handleAdd(data: ExpenseInput) {
     try {
       await createExpense(data)
@@ -75,6 +90,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
     }
   }
 
+  // Sends the updated expense data to the API and refreshes the table on success.
   async function handleEdit(data: ExpenseInput) {
     if (!editTarget) return
     try {
@@ -87,6 +103,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
     }
   }
 
+  // Sends a delete request to the API and refreshes the table on success.
   async function handleDelete() {
     if (!deleteTarget) return
     setDeleting(true)
@@ -104,6 +121,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
 
   return (
     <div className="space-y-4">
+      {/* Toolbar with the category filter dropdown and the add expense button. */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <Select value={categoryFilter} onValueChange={(val) => val && setCategoryFilter(val)}>
           <SelectTrigger className="w-44">
@@ -111,6 +129,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
+            {/* Renders one filter option per category with its emoji. */}
             {CATEGORIES.map((cat) => (
               <SelectItem key={cat} value={cat}>
                 {CATEGORY_EMOJI[cat]} {cat}
@@ -125,6 +144,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
         </Button>
       </div>
 
+      {/* The main expense table with date, category, description, amount, and action columns. */}
       <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
@@ -137,6 +157,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
+            {/* Shows animated skeleton rows while the data is refreshing. */}
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
@@ -148,6 +169,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
+              // Shows an empty state message if no expenses match the current filter.
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12">
                   <div className="space-y-2">
@@ -162,6 +184,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
                 </TableCell>
               </TableRow>
             ) : (
+              // Renders one table row per expense with edit and delete action buttons.
               filtered.map((expense) => (
                 <TableRow key={expense.id}>
                   <TableCell className="text-stone-600 text-sm">{formatDate(expense.date)}</TableCell>
@@ -181,6 +204,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 justify-end">
+                      {/* Edit button opens the edit dialog pre-filled with this expense's data. */}
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -190,6 +214,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </Button>
+                      {/* Delete button opens a confirmation dialog before removing the expense. */}
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -208,7 +233,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
         </Table>
       </div>
 
-      {/* Add Expense */}
+      {/* Dialog for adding a new expense. */}
       <Dialog open={addOpen} onOpenChange={(open) => setAddOpen(open)}>
         <DialogContent>
           <DialogHeader>
@@ -219,7 +244,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Expense */}
+      {/* Dialog for editing an existing expense, pre-filled with the selected expense's values. */}
       <Dialog open={!!editTarget} onOpenChange={(open) => !open && setEditTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -241,7 +266,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* Confirmation dialog shown before permanently deleting an expense. */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
@@ -250,6 +275,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
               This cannot be undone. Are you sure you want to delete this expense?
             </DialogDescription>
           </DialogHeader>
+          {/* Shows a summary of the expense about to be deleted. */}
           {deleteTarget && (
             <div className="py-1 text-sm text-stone-600 space-y-1">
               <p>
@@ -268,6 +294,7 @@ export function ExpenseList({ initialExpenses, month }: ExpenseListProps) {
             <Button variant="outline" onClick={() => setDeleteTarget(null)}>
               Cancel
             </Button>
+            {/* The destructive delete button that confirms and executes the deletion. */}
             <Button variant="destructive" disabled={deleting} onClick={handleDelete}>
               {deleting ? "Deleting…" : "Delete"}
             </Button>

@@ -1,8 +1,13 @@
+// This file defines the reusable Input component used for all text and number fields in forms.
+// It applies consistent styling and accessibility behaviour across the app, including focus
+// rings, disabled states, and error highlighting.
+
 import * as React from "react"
 import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@/lib/utils"
 
+// Renders a styled text input field with consistent padding, border, and focus behaviour.
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive

@@ -1,5 +1,9 @@
+// This file shows a placeholder skeleton animation while the dashboard data is being loaded.
+// It mirrors the layout of the real dashboard so the page does not jump around when content appears.
+
 import { Skeleton } from "@/components/ui/skeleton"
 
+// Renders grey animated blocks in the same positions as the real dashboard content.
 export default function DashboardLoading() {
   return (
     <div className="space-y-6">
@@ -11,7 +15,7 @@ export default function DashboardLoading() {
         <Skeleton className="h-9 w-28 rounded-xl" />
       </div>
 
-      {/* Stat cards */}
+      {/* Placeholder for the three stat cards shown in a row. */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="rounded-2xl border border-stone-200 bg-white shadow-sm p-5 space-y-2">
@@ -22,7 +26,7 @@ export default function DashboardLoading() {
         ))}
       </div>
 
-      {/* Chart + recent grid */}
+      {/* Placeholder for the pie chart and recent expenses side by side. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-6 space-y-4">
           <Skeleton className="h-5 w-44" />
@@ -30,6 +34,7 @@ export default function DashboardLoading() {
         </div>
         <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-6 space-y-4">
           <Skeleton className="h-5 w-36" />
+          {/* Placeholders for five recent expense rows. */}
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
               <Skeleton className="h-8 w-8 rounded-full shrink-0" />

@@ -1,9 +1,14 @@
+// This file defines the Table component and its sub-parts for displaying data in rows and columns.
+// It is used on the Expenses page and Reports page to show lists of records in a consistent,
+// horizontally scrollable layout with header, body, footer, and caption sections.
+
 "use client"
 
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Renders the outer table container with horizontal scroll support for small screens.
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -19,6 +24,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
+// Renders the header section containing the column title row.
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
@@ -29,6 +35,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   )
 }
 
+// Renders the main body section of the table containing the data rows.
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
@@ -39,6 +46,7 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   )
 }
 
+// Renders the footer section at the bottom of the table, typically showing totals.
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
@@ -52,6 +60,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
+// Renders a single table row with a subtle hover background and border.
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
@@ -65,6 +74,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
+// Renders a header cell with bold text, used for column titles in the TableHeader.
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
@@ -78,6 +88,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
+// Renders a standard data cell inside a table row.
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
@@ -91,6 +102,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   )
 }
 
+// Renders a caption below the table, used for accessibility or supplementary notes.
 function TableCaption({
   className,
   ...props

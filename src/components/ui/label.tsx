@@ -1,9 +1,14 @@
+// This file defines the reusable Label component used above form fields.
+// It applies consistent text sizing and automatically dims when the associated
+// input is disabled, improving the form's accessibility.
+
 "use client"
 
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Renders a styled label element linked to a form input by the htmlFor attribute.
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
     <label

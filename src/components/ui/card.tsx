@@ -1,7 +1,12 @@
+// This file defines the Card component and its sub-parts used to build content panels.
+// A Card groups related content visually with a white background and rounded corners,
+// and its sub-components (header, title, description, content, footer) structure what goes inside.
+
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Renders the outer card container with a white background, rounded corners, and a subtle border.
 function Card({
   className,
   size = "default",
@@ -20,6 +25,7 @@ function Card({
   )
 }
 
+// Renders the top section of a card, typically containing a title and description.
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -33,6 +39,7 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders the bold title text at the top of a card.
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -46,6 +53,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders the smaller subtitle text under the card title.
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -56,6 +64,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders an optional action area positioned in the top-right corner of the card header.
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -69,6 +78,7 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders the main content area inside the card with consistent horizontal padding.
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -79,6 +89,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders the footer area at the bottom of the card with a muted background.
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

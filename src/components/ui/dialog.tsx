@@ -1,3 +1,7 @@
+// This file defines the Dialog (modal popup) component and all its parts.
+// Dialogs are used throughout the app to show forms and confirmation messages on top of the page
+// without navigating away, with a dimmed backdrop behind them.
+
 "use client"
 
 import * as React from "react"
@@ -7,22 +11,27 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+// The root dialog component that controls whether the popup is open or closed.
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
+// A button that opens the dialog when clicked.
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
+// Renders the dialog content inside a React portal so it appears above everything else on the page.
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
+// A button inside the dialog that closes it when clicked.
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+// Renders the dimmed backdrop behind the dialog that visually separates it from the page.
 function DialogOverlay({
   className,
   ...props
@@ -39,6 +48,7 @@ function DialogOverlay({
   )
 }
 
+// Renders the white popup panel in the centre of the screen with an optional close button.
 function DialogContent({
   className,
   children,
@@ -59,6 +69,7 @@ function DialogContent({
         {...props}
       >
         {children}
+        {/* Renders a small X button in the top-right corner to close the dialog. */}
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
@@ -80,6 +91,7 @@ function DialogContent({
   )
 }
 
+// Renders the top section of the dialog containing the title and description.
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -90,6 +102,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+// Renders the bottom section of the dialog containing action buttons.
 function DialogFooter({
   className,
   showCloseButton = false,
@@ -108,6 +121,7 @@ function DialogFooter({
       {...props}
     >
       {children}
+      {/* Optionally renders a Close button in the footer alongside other action buttons. */}
       {showCloseButton && (
         <DialogPrimitive.Close render={<Button variant="outline" />}>
           Close
@@ -117,6 +131,7 @@ function DialogFooter({
   )
 }
 
+// Renders the bold title text at the top of the dialog.
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
@@ -130,6 +145,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   )
 }
 
+// Renders the smaller descriptive text below the dialog title.
 function DialogDescription({
   className,
   ...props
