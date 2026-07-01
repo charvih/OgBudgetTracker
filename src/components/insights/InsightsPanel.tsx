@@ -101,15 +101,12 @@ export function InsightsPanel({ initialContent, initialGeneratedAt, initialMonth
     await fetchForMonth(m)
   }
 
-  // Calls the AI to generate new insights, optionally clearing old ones first when refreshing.
-  async function generate(isRefresh = false) {
+  // Calls the AI to generate new insights for the selected month.
+  async function generate() {
     setLoading(true)
     try {
-      // If refreshing, deletes the cached insights so the AI generates a completely fresh response.
-      if (isRefresh) {
-        await fetch(`/api/insights?month=${month}`, { method: "DELETE" })
-      }
       // Calls the insights API endpoint which triggers the Claude AI.
+      // The server enforces a 6-hour cache window and returns existing insights if they are fresh.
       const res = await fetch("/api/insights", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -154,7 +151,7 @@ export function InsightsPanel({ initialContent, initialGeneratedAt, initialMonth
         </div>
         {/* The button to generate insights for the first time, or refresh existing ones. */}
         <Button
-          onClick={() => generate(!!content)}
+          onClick={() => generate()}
           disabled={loading}
           className="bg-rose-500 hover:bg-rose-600"
         >
