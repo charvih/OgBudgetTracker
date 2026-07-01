@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { toast } from "sonner"
 import { CATEGORY_EMOJI, formatCurrency } from "@/lib/utils"
 import type { Category } from "@/lib/utils"
@@ -42,7 +42,7 @@ export function BudgetGrid({ data, month }: BudgetGridProps) {
 
   function handleBlur(category: Category) {
     const raw = limits[category].trim()
-    if (!raw || Number(raw) <= 0) return
+    if (!raw || isNaN(Number(raw)) || Number(raw) <= 0) return
 
     clearTimeout(saveTimers.current[category])
     saveTimers.current[category] = setTimeout(() => void doSave(category, raw), 300)
@@ -85,8 +85,8 @@ export function BudgetGrid({ data, month }: BudgetGridProps) {
             {limitVal != null && pct != null && (
               <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${barColor}`}
-                  style={{ width: `${Math.min(pct, 100)}%` }}
+                  className={`h-full rounded-full transition-all w-[var(--bar-pct)] ${barColor}`}
+                  style={{ "--bar-pct": `${Math.min(pct, 100)}%` } as React.CSSProperties}
                 />
               </div>
             )}
