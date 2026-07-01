@@ -82,7 +82,7 @@ export default async function DashboardPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <CategoryPieChart data={chartData} />
-        <RecentExpenses expenses={recentExpenses} />
+        <RecentExpenses expenses={recentExpenses} month={month} />
       </div>
 
       {budgetData.length > 0 && <BudgetProgressBar budgets={budgetData} />}

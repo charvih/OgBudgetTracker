@@ -12,14 +12,15 @@ interface Expense {
 
 interface RecentExpensesProps {
   expenses: Expense[]
+  month: string
 }
 
-export function RecentExpenses({ expenses }: RecentExpensesProps) {
+export function RecentExpenses({ expenses, month }: RecentExpensesProps) {
   return (
     <div className="rounded-2xl border border-stone-200 bg-white shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-semibold text-stone-800">Recent Expenses</h2>
-        <Link href="/expenses" className="text-xs text-rose-500 hover:underline font-medium">
+        <Link href={`/expenses?month=${month}`} className="text-xs text-rose-500 hover:underline font-medium">
           View all →
         </Link>
       </div>
