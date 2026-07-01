@@ -3,7 +3,7 @@ import { z } from "zod"
 
 const client = new Anthropic()
 
-const insightSchema = z.object({
+export const insightSchema = z.object({
   tips: z.array(z.string()),
   overspend: z.array(z.string()),
   forgotten_subscriptions: z.array(z.string()),

@@ -1,7 +1,7 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { db } from "@/lib/db"
-import type { InsightContent } from "@/lib/ai"
+import { insightSchema } from "@/lib/ai"
 import { InsightsPanel } from "@/components/insights/InsightsPanel"
 
 export const metadata = { title: "Insights — Budget Tracker" }
@@ -12,6 +12,9 @@ export default async function InsightsPage() {
 
   const insight = await db.insight.findUnique({ where: { userId: session.user.id } })
 
+  const parsed = insight ? insightSchema.safeParse(insight.content) : null
+  const initialContent = parsed?.success ? parsed.data : null
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,7 +24,7 @@ export default async function InsightsPage() {
         </p>
       </div>
       <InsightsPanel
-        initialContent={insight ? (insight.content as InsightContent) : null}
+        initialContent={initialContent}
         initialGeneratedAt={insight ? insight.generatedAt.toISOString() : null}
       />
     </div>
