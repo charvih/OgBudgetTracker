@@ -14,7 +14,7 @@ model User {
   name      String
   expenses  Expense[]
   budgets   Budget[]
-  insight   Insight?
+  insights  Insight[]
   createdAt DateTime  @default(now())
 }
 
@@ -43,8 +43,11 @@ model Budget {
 
 model Insight {
   id          String   @id @default(cuid())
-  userId      String   @unique
+  userId      String
+  month       String
   content     Json
   generatedAt DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
 }
