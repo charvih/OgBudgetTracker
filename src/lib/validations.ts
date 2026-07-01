@@ -16,7 +16,11 @@ export const expenseSchema = z.object({
   amount: z.coerce.number().positive("Amount must be greater than 0"),
   category: z.enum(CATEGORIES, { message: "Invalid category" }),
   date: z.string().min(1, "Date is required").refine(
-    (val) => val <= new Date().toISOString().slice(0, 10),
+    (val) => {
+      const now = new Date()
+      const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+      return val <= localToday
+    },
     "Date cannot be in the future"
   ),
   description: z.string().max(200, "Description must be under 200 characters").optional().default(""),
