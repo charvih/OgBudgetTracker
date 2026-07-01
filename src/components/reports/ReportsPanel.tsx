@@ -1,6 +1,6 @@
 "use client"
 
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { Download } from "lucide-react"
 import {
   BarChart,
@@ -78,7 +78,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
 
   const trendData: TrendPoint[] = data.trend.map((t) => ({
     ...t,
-    label: format(new Date(t.month + "-01"), "MMM"),
+    label: format(parseISO(t.month + "-01"), "MMM"),
   }))
 
   const hasAnyBudget = visibleRows.some((r) => r.budget !== null)
@@ -108,7 +108,7 @@ export function ReportsPanel({ data, month }: ReportsPanelProps) {
       <div className="rounded-2xl border border-stone-200 bg-white shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-stone-100">
           <h2 className="font-semibold text-stone-800">
-            Category Summary — {format(new Date(month + "-01"), "MMMM yyyy")}
+            Category Summary — {format(parseISO(month + "-01"), "MMMM yyyy")}
           </h2>
         </div>
 
